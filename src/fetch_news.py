@@ -3,14 +3,27 @@ import requests
 import json
 from datetime import datetime
 from dotenv import load_dotenv
+from src.data_quality import filter_articles
 
 load_dotenv()
 
 NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 BASE_URL = "https://newsapi.org/v2/top-headlines"
 
+# def fetch_top_headlines(country="us", page_size=10):
+#     """Fetch top headlines from NewsAPI."""
+#     # raise Exception("Test failure")
+#     params = {
+#         "country": country,
+#         "pageSize": page_size,
+#         "apiKey": NEWS_API_KEY
+#     }
+#     response = requests.get(BASE_URL, params=params)
+#     response.raise_for_status()
+#     data = response.json()
+#     return data
+
 def fetch_top_headlines(country="us", page_size=10):
-    """Fetch top headlines from NewsAPI."""
     params = {
         "country": country,
         "pageSize": page_size,
@@ -19,6 +32,9 @@ def fetch_top_headlines(country="us", page_size=10):
     response = requests.get(BASE_URL, params=params)
     response.raise_for_status()
     data = response.json()
+    # Filter out low-quality articles
+    if 'articles' in data:
+        data['articles'] = filter_articles(data['articles'])
     return data
 
 def save_raw_data(data, filename=None):

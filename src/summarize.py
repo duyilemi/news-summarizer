@@ -11,7 +11,7 @@ def summarize_article(article_text, max_tokens=150):
     """Summarize a single article using Groq's Mixtral."""
     prompt = f"Summarize the following news article concisely in 2-3 sentences:\n\n{article_text}"
     response = client.chat.completions.create(
-        model="mixtral-8x7b-32768",
+        model="llama-3.1-8b-instant",
         messages=[{"role": "user", "content": prompt}],
         max_tokens=max_tokens,
         temperature=0.7,

@@ -1,0 +1,6 @@
+[core]
+    remote = local_backup
+['remote "gdrive_remote"']
+    url = gdrive://16mFezGxA_DJQYeXbtzswp3fCYCDYnIqd
+['remote "local_backup"']
+    url = /home/charlie/dvc_remote_backup

@@ -1,0 +1,17 @@
+FROM apache/airflow:2.10.3
+
+USER root
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
+USER airflow
+COPY requirements-airflow.txt .
+RUN pip install --no-cache-dir -r requirements-airflow.txt
+
+COPY dags/ /opt/airflow/dags/
+COPY src/ /opt/airflow/src/
+COPY .env /opt/airflow/.env
+COPY dvc.yaml /opt/airflow/
+COPY .dvc/ /opt/airflow/.dvc/
+COPY data/ /opt/airflow/data/
+
+RUN dvc init --no-scm || true
