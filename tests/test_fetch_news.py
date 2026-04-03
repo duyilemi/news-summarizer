@@ -3,14 +3,19 @@ from unittest.mock import patch, MagicMock
 from src.fetch_news import fetch_top_headlines, save_raw_data
 import json
 
+
 @patch('src.fetch_news.requests.get')
 def test_fetch_top_headlines_success(mock_get):
-    # Mock response
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
         "status": "ok",
-        "articles": [{"title": "Test", "description": "Test description"}]
+        "articles": [{
+            "title": "Valid Title Here",       # length >=5
+            "description": "Test description",
+            "url": "http://example.com",       # required
+            "publishedAt": "2024-01-01"        # required
+        }]
     }
     mock_get.return_value = mock_response
 
