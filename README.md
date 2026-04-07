@@ -60,7 +60,7 @@ NewsAPI → Airflow DAG → Fetch Articles → Data Quality Checks → LLM Summa
 ### 1) Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/news-summarizer.git
+git clone https://github.com/duyilemi/news-summarizer.git
 cd news-summarizer
 ```
 
@@ -155,7 +155,7 @@ These tests help ensure the pipeline behaves correctly even when external servic
 
 
 * **`README.md`** — the main project overview, setup, architecture, and usage guide.
-* **`ISSUES.md`** — a chronological record of bugs, errors, and fixes you encountered during development.
+* **`ISSUES.md`** — a chronological record of bugs, errors, and fixes i encountered during development.
 * **`DECISIONS.md`** — the reasoning behind architectural choices and tool selection.
 
 
