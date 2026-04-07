@@ -12,13 +12,6 @@ services:
       interval: 5s
       retries: 5
 
-  redis:
-    image: redis:7
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      retries: 5
-
   airflow-init:
     build:
       context: .
@@ -26,17 +19,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
-      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
-      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
-      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__CORE__FERNET_KEY: ""
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-      # API keys for initialisation (though not strictly needed here)
       NEWS_API_KEY: ${NEWS_API_KEY}
       GROQ_API_KEY: ${GROQ_API_KEY}
     entrypoint: /bin/bash
@@ -50,29 +38,27 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
-      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
-      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
-      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__CORE__FERNET_KEY: ""
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__WEBSERVER__RBAC: "true"
-      # API keys for DAG tasks
       NEWS_API_KEY: ${NEWS_API_KEY}
       GROQ_API_KEY: ${GROQ_API_KEY}
+      AIRFLOW__WEBSERVER__SECRET_KEY: Orb4n1JHlRgTCEkkn83nWGdyb3FY3yjGO3pgRH4petkPKlknBiCK
     ports:
       - "8080:8080"
     volumes:
       - ./dags:/opt/airflow/dags
       - ./src:/opt/airflow/src
       - ./data:/opt/airflow/data
-      - ./.dvc:/opt/airflow/.dvc
+      # - ./.dvc:/opt/airflow/.dvc
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     command: webserver
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
@@ -84,29 +70,28 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.airflow
+    working_dir: /opt/airflow
     depends_on:
       postgres:
-        condition: service_healthy
-      redis:
         condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
-      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
-      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
-      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__CORE__FERNET_KEY: ""
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-      # API keys for DAG tasks
       NEWS_API_KEY: ${NEWS_API_KEY}
       GROQ_API_KEY: ${GROQ_API_KEY}
+      AIRFLOW__WEBSERVER__SECRET_KEY: Orb4n1JHlRgTCEkkn83nWGdyb3FY3yjGO3pgRH4petkPKlknBiCK
     volumes:
       - ./dags:/opt/airflow/dags
       - ./src:/opt/airflow/src
       - ./data:/opt/airflow/data
-      - ./.dvc:/opt/airflow/.dvc
+      # - ./.dvc:/opt/airflow/.dvc
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     command: scheduler
 
   fastapi:
@@ -122,6 +107,12 @@ services:
       - GROQ_API_KEY=${GROQ_API_KEY}
     depends_on:
       - airflow-webserver
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - fastapi
 
 volumes:
   postgres_data:

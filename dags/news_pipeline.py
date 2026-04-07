@@ -17,7 +17,7 @@ default_args = {
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+    'retry_delay': timedelta(seconds=30),
 }
 
 dag = DAG(
@@ -52,23 +52,32 @@ summarize = PythonOperator(
     dag=dag,
 )
 
+dvc_init = BashOperator(
+    task_id='dvc_init',
+    bash_command='cd /opt/airflow && rm -rf .dvc && uv run dvc init --no-scm',
+    dag=dag,
+)
+
+
 dvc_add_raw = BashOperator(
     task_id='dvc_add_raw',
-    bash_command='cd /home/charlie/Documents/projects/news-summarizer && uv run dvc add data/raw',
+    bash_command='cd /opt/airflow && uv run dvc add data/raw',
     dag=dag,
 )
 
 dvc_add_processed = BashOperator(
     task_id='dvc_add_processed',
-    bash_command='cd /home/charlie/Documents/projects/news-summarizer && uv run dvc add data/processed',
+    bash_command='cd /opt/airflow && uv run dvc add data/processed',
     dag=dag,
 )
 
-dvc_push = BashOperator(
-    task_id='dvc_push',
-    bash_command='cd /home/charlie/Documents/projects/news-summarizer && uv run dvc push',
-    dag=dag,
-)
+# dvc_push = BashOperator(
+#     task_id='dvc_push',
+#     bash_command='cd /opt/airflow && uv run dvc push',
+#     dag=dag,
+# )
 
 # Update the dependency chain
-fetch >> summarize >> [dvc_add_raw, dvc_add_processed] >> dvc_push
+# fetch >> summarize >> [dvc_add_raw, dvc_add_processed] >> dvc_push
+# fetch >> summarize >> [dvc_add_raw, dvc_add_processed]
+fetch >> summarize >> dvc_init >> [dvc_add_raw, dvc_add_processed]

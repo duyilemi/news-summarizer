@@ -6,8 +6,17 @@ from typing import List, Optional
 import subprocess
 from datetime import datetime
 import glob
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="News Summarizer API")
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For development only; restrict in production
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SummaryResponse(BaseModel):
     title: str
